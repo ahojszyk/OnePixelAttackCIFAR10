@@ -46,7 +46,7 @@ def plot_confusion_matrices_by_model(model_tables, conf_matrix_set, pixel_counts
         plt.tight_layout(rect=[0, 0, 1, 0.95])
         plt.show()
 
-def success_by_class(df):
+def success_by_class(df, targeted = False):
   """
     Calculates the success rate for each class based on the 'success' column.
 
@@ -57,7 +57,10 @@ def success_by_class(df):
     - success_rate_per_class: A pandas Series where the index is 'actual_class' and the value is
       the success rate as a formatted string with two decimal places and a '%' sign.
   """
-  success_rate_per_class = df.groupby('actual_class')['success'].mean() * 100
+  if targeted:
+      success_rate_per_class = df.groupby('actual_class')['success'].mean() * 100
+  else:
+      success_rate_per_class = df.groupby('actual_class')['success'].mean() * 100
   success_rate_per_class = success_rate_per_class.apply(lambda x: f"{x:.2f}%")
   return success_rate_per_class
 
@@ -346,3 +349,36 @@ def plot_targeted_success_rate_by_pixel_count(success_table):
 
     # Show the plot
     plt.show()
+
+
+
+def summary_tables(df, targeted = False):
+
+  # Dictionaries for results
+  model_tables = {}
+  conf_matrix_set = {}
+
+  # Find model_names and pixel_counts
+  model_names = df['model_name'].unique()
+  pixel_counts = sorted(df['pixel_count'].unique())
+
+  # Loop through each model and pixel count, calculate success rates and confusion matrices
+  for model in model_names:
+      model_results = {}
+
+      for pixel in pixel_counts:
+          filtered_df = df[(df['model_name'] == model) & (df['pixel_count'] == pixel)]
+
+          # Get success rate by class
+          success_rate_class = success_by_class(filtered_df, targeted)
+
+          # Get confusion matrix
+          conf_matrix_data = conf_matrix(filtered_df, model, pixel)
+
+          # Store results
+          model_results[f"{pixel} Pixel"] = success_rate_class
+          conf_matrix_set[f"{model} {pixel} Pixel"] = conf_matrix_data
+
+      # Convert results into a DataFrame and store
+      model_tables[model] = pd.DataFrame(model_results)
+  return model_tables, conf_matrix_set
