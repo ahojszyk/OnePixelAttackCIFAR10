@@ -58,7 +58,7 @@ def success_by_class(df, targeted = False):
       the success rate as a formatted string with two decimal places and a '%' sign.
   """
   if targeted:
-      success_rate_per_class = df.groupby('actual_class')['success'].mean() * 100
+      success_rate_per_class = df.groupby('actual_class')['targeted_success'].mean() * 100
   else:
       success_rate_per_class = df.groupby('actual_class')['success'].mean() * 100
   success_rate_per_class = success_rate_per_class.apply(lambda x: f"{x:.2f}%")
